@@ -1,4 +1,4 @@
-Writing-Custom-DSLs
+Writing Custom DSLs Code Example
 ===================
 
-Code referenced in "Writing Custom DSLs [JSConf2014]"
+shipping-dsl-example.html has the code I reference at the end of [Writing Custom DSLs](https://www.youtube.com/watch?v=lm4jEcnWeKI).
