@@ -1,0 +1,121 @@
+<html>
+	<head>
+		<title>Code referenced in "Writing Custom DSLs [JSConf2014]"</title>
+	</head>
+	<body>
+
+	<!-- loading the text in a textarea as if a customer had typed it in - doesn't matter, we just need the text -->
+	<textarea style="height: 175px; width: 600px">
+when shipping domestically
+
+    if delivery date is flexible ship as cheaply as possible
+
+    if delivery date is specified pass shipping cost on to customer
+
+when shipping internationally
+
+    then ship as cheaply as possible
+	</textarea>
+
+	<script>
+
+	// The stub builder I mention in the talk before I walk through the real builder
+	var dslBuilder = {
+	    when            : function(){return this;},
+	    'if'            : function(){return this;},
+	    then            : function(){return this;},
+	    domestically    : function(){return this;},
+	    internationally : function(){return this;},
+	    specified       : function(){return this;},
+	    flexible        : function(){return this;},
+	    cheaply         : function(){return this;},
+	    pass            : function(){return this;},
+	    build           : function(){return this;}
+	};
+
+	// The real builder in the code example near the end of the talk
+	var dslBuilder = new function() {
+	    this.rules = [];
+
+	    this.getCurrentRule = function(){
+	        return this.rules[this.rules.length - 1];
+	    };
+
+	    this.getCurrentCondition = function(){
+	        var currentRule = this.getCurrentRule();
+	        return currentRule.conditions[currentRule.conditions.length - 1];
+	    };
+
+	    this.when = function(){
+	        this.rules.push({});
+	        return this;
+	    };
+
+	    this.domestically = function() {
+	        this.getCurrentRule().isDomestic = true;
+	        return this;
+	    };
+
+	    this.internationally = function() {
+	        this.getCurrentRule().isDomestic = false;
+	        return this;
+	    };
+
+	    this['if'] = function() {
+	        var currentRule = this.getCurrentRule();
+	        currentRule.conditions = currentRule.conditions || [];
+	        currentRule.conditions.push({});
+	        return this;
+	    };
+
+	    this.then = this['if'];
+
+	    this.specified = function() {
+	        this.getCurrentCondition().dateSpecified = true;
+	        return this;
+	    };
+
+	    this.flexible = function() {
+	        this.getCurrentCondition().dateSpecified = false;
+	        return this;
+	    };
+
+	    this.cheaply = function() {
+	        this.getCurrentCondition().calculateShippingAs = "CHEAPLY_AS_POSSIBLE";
+	        return this;
+	    };
+
+	    this.pass = function() {
+	        this.getCurrentCondition().calculateShippingAs = "PASS_ON_TO_CUSTOMER";
+	        return this;
+	    };
+
+	    this.build = function() {
+	        new ShippingCostCalculator(this.rules);
+	    };
+
+	};
+
+	// Just a stub so the build method doesn't blow up.  In the real world this would 
+	// build the configured domain model I showed the UML for at 20:23 in the video
+	function ShippingCostCalculator(rules){}
+
+	// In the talk, I step through the results of each of these lines in the console
+	dslText = document.getElementsByTagName('TEXTAREA')[0].value.trim()
+
+	wordsToRemoveRegEx = /\s(shipping|delivery|date|is|ship|as|possible|cost|on|to|customer)/g
+
+	dslReducedText = dslText.replace(wordsToRemoveRegEx,'');
+
+	dslWithParensDot = dslReducedText.replace(/\s+/g,'().');
+
+	dslCodeAsString = 'dslBuilder.' + dslWithParensDot + '();'
+
+	eval(dslCodeAsString);
+
+	// Just peaking at the internal structure of "rules"
+	console.log(JSON.stringify(dslBuilder.rules, null, 2));
+
+	</script>
+	</body>
+</html>
